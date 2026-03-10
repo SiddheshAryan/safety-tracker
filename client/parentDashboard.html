@@ -2,70 +2,57 @@
 <html>
 
 <head>
+    <title>Parent Dashboard</title>
 
-<title>Parent Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="/socket.io/socket.io.js"></script>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        body{
+            margin:0;
+            font-family:Arial;
+        }
 
-<script src="/socket.io/socket.io.js"></script>
+        .header{
+            background:#4fa3ff;
+            color:white;
+            padding:15px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
 
-<style>
+        .controls{
+            padding:10px;
+            background:#f2f2f2;
+        }
 
-body{
-margin:0;
-font-family:Arial;
-}
+        #map{
+            height:80vh;
+        }
 
-.header{
-background:#4fa3ff;
-color:white;
-padding:15px;
-display:flex;
-justify-content:space-between;
-}
+        input{
+            padding:8px;
+        }
 
-.controls{
-padding:10px;
-background:#f2f2f2;
-}
-
-#map{
-height:80vh;
-}
-
-input{
-padding:8px;
-}
-
-button{
-padding:8px 15px;
-margin-left:10px;
-}
-
-</style>
-
+        button{
+            padding:8px 15px;
+            margin-left:10px;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="header">
-
-<div>
-Parent Dashboard
-</div>
-
-<button onclick="logout()">Logout</button>
-
+    <div>Parent Dashboard</div>
+    <button onclick="logout()">Logout</button>
 </div>
 
 <div class="controls">
-
-Enter Child Roll Number:
-
-<input type="text" id="roll">
-
-<button onclick="track()">Track Child</button>
-
+    Enter Child Roll Number:
+    <input type="text" id="roll">
+    <button onclick="track()">Track Child</button>
 </div>
 
 <div id="map"></div>
@@ -73,44 +60,33 @@ Enter Child Roll Number:
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
+    const socket = io();
 
-const socket = io()
+    let map = L.map('map').setView([20.5937,78.9629],5);
 
-let map = L.map('map').setView([20.5937,78.9629],5)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        maxZoom:19
+    }).addTo(map);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
+    let marker = L.marker([20.5937,78.9629]).addTo(map);
 
-let marker = L.marker([20.5937,78.9629]).addTo(map)
+    function track(){
+        let roll = document.getElementById("roll").value;
+        socket.emit("trackStudent", roll);
+    }
 
-function track(){
+    socket.on("receiveLocation",(data)=>{
+        let lat = data.lat;
+        let lon = data.lon;
 
-let roll=document.getElementById("roll").value
+        marker.setLatLng([lat,lon]);
+        map.setView([lat,lon],15);
+    });
 
-socket.emit("trackStudent",roll)
-
-}
-
-socket.on("receiveLocation",(data)=>{
-
-let lat=data.lat
-let lon=data.lon
-
-marker.setLatLng([lat,lon])
-
-map.setView([lat,lon],15)
-
-})
-
-function logout(){
-
-window.location.href="home.html"
-
-}
-
+    function logout(){
+        window.location.href = "index.html";
+    }
 </script>
 
 </body>
-
 </html>
