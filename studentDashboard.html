@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Student Dashboard</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial;
+    background: linear-gradient(120deg,#c8f7dc,#cbe8ff);
+    padding:40px;
+}
+
+.container{
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    max-width:600px;
+    margin:auto;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.2);
+}
+
+button{
+    padding:10px 20px;
+    margin:10px;
+    border:none;
+    border-radius:8px;
+    background:#4fa3ff;
+    color:white;
+    cursor:pointer;
+}
+
+.status{
+    margin-top:20px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Student Dashboard</h2>
+
+<p><b>Name:</b> <span id="name"></span></p>
+<p><b>Roll Number:</b> <span id="roll"></span></p>
+
+<button onclick="startTracking()">Start</button>
+<button onclick="stopTracking()">Stop</button>
+
+<p class="status">
+Status: <span id="status">Stopped</span>
+</p>
+
+<br>
+
+<button onclick="logout()">Logout</button>
+
+</div>
+
+<script>
+
+const socket = io()
+
+let watchID
+
+let name = localStorage.getItem("regName")
+let roll = localStorage.getItem("roll")
+
+document.getElementById("name").innerText = name || "Student"
+document.getElementById("roll").innerText = roll || "Not Available"
+
+function startTracking(){
+
+document.getElementById("status").innerText="Tracking..."
+
+watchID = navigator.geolocation.watchPosition((pos)=>{
+
+let data = {
+
+roll:roll,
+lat:pos.coords.latitude,
+lon:pos.coords.longitude
+
+}
+
+socket.emit("locationUpdate",data)
+
+})
+
+}
+
+function stopTracking(){
+
+navigator.geolocation.clearWatch(watchID)
+
+document.getElementById("status").innerText="Stopped"
+
+}
+
+function logout(){
+
+window.location.href="home.html"
+
+}
+
+</script>
+
+</body>
+
+</html>
