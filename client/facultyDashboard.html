@@ -62,25 +62,87 @@
 <script>
     const socket = io();
 
-    let map = L.map('map').setView([20.5937,78.9629],5);
+    let map = L.map('map').setView([20.5937, 78.9629], 5);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        maxZoom:19
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
     }).addTo(map);
 
-    let marker = L.marker([20.5937,78.9629]).addTo(map);
+    const redIcon = new L.Icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    const blueIcon = new L.Icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    const greenIcon = new L.Icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    let startMarker = null;
+    let currentMarker = null;
+    let stopMarker = null;
+    let pathLine = null;
+    let trackedRoll = "";
 
     function track(){
-        let roll = document.getElementById("roll").value;
-        socket.emit("trackStudent", roll);
+        trackedRoll = document.getElementById("roll").value.trim();
+        if (!trackedRoll) {
+            alert("Enter roll number");
+            return;
+        }
+        socket.emit("trackStudent", trackedRoll);
     }
 
-    socket.on("receiveLocation",(data)=>{
-        let lat = data.lat;
-        let lon = data.lon;
+    socket.on("receiveLocation", (data) => {
+        if (trackedRoll && data.roll !== trackedRoll) return;
 
-        marker.setLatLng([lat,lon]);
-        map.setView([lat,lon],15);
+        if (data.start) {
+            if (startMarker) map.removeLayer(startMarker);
+            startMarker = L.marker([data.start.lat, data.start.lon], { icon: redIcon })
+                .addTo(map)
+                .bindPopup("Start Location");
+        }
+
+        if (data.current) {
+            if (currentMarker) map.removeLayer(currentMarker);
+            currentMarker = L.marker([data.current.lat, data.current.lon], { icon: blueIcon })
+                .addTo(map)
+                .bindPopup("Current Location");
+            map.setView([data.current.lat, data.current.lon], 16);
+        }
+
+        if (data.stop) {
+            if (stopMarker) map.removeLayer(stopMarker);
+            stopMarker = L.marker([data.stop.lat, data.stop.lon], { icon: greenIcon })
+                .addTo(map)
+                .bindPopup("Stop Location");
+        }
+
+        if (data.path && data.path.length > 1) {
+            if (pathLine) map.removeLayer(pathLine);
+            pathLine = L.polyline(data.path).addTo(map);
+        }
+    });
+
+    socket.on("locationError", (data) => {
+        alert(data.message);
     });
 
     function logout(){
