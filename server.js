@@ -1,60 +1,110 @@
-const express = require("express")
-const app = express()
-const http = require("http").createServer(app)
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
 
-const { Server } = require("socket.io")
-const io = new Server(http)
+const { Server } = require("socket.io");
+const io = new Server(http);
 
-app.use(express.static("client"))
+app.use(express.json());
+app.use(express.static("client"));
 
-let studentLocations = {}
-
-io.on("connection",(socket)=>{
-
-console.log("User Connected")
-
-// student sends GPS location
-socket.on("locationUpdate",(data)=>{
-
-let roll = data.roll
-
-studentLocations[roll] = {
-lat:data.lat,
-lon:data.lon
+/*
+studentData structure:
+rollNumber: {
+    current: { lat, lon },
+    start: { lat, lon },
+    stop: { lat, lon } | null,
+    path: [[lat, lon], [lat, lon], ...],
+    isTracking: true/false
 }
+*/
+let studentData = {};
 
-io.emit("receiveLocation",{
-roll:roll,
-lat:data.lat,
-lon:data.lon
-})
+io.on("connection", (socket) => {
+    console.log("User connected");
 
-})
+    // Student sends live location
+    socket.on("locationUpdate", (data) => {
+        const roll = data.roll;
+        const lat = data.lat;
+        const lon = data.lon;
 
-// parent/faculty request student location
-socket.on("trackStudent",(roll)=>{
+        if (!studentData[roll]) {
+            studentData[roll] = {
+                current: { lat, lon },
+                start: { lat, lon },
+                stop: null,
+                path: [[lat, lon]],
+                isTracking: true
+            };
+        } else {
+            if (!studentData[roll].start) {
+                studentData[roll].start = { lat, lon };
+            }
 
-let loc = studentLocations[roll]
+            studentData[roll].current = { lat, lon };
+            studentData[roll].isTracking = true;
+            studentData[roll].stop = null;
+            studentData[roll].path.push([lat, lon]);
+        }
 
-if(loc){
+        io.emit("receiveLocation", {
+            roll: roll,
+            start: studentData[roll].start,
+            current: studentData[roll].current,
+            stop: studentData[roll].stop,
+            path: studentData[roll].path,
+            isTracking: studentData[roll].isTracking
+        });
+    });
 
-socket.emit("receiveLocation",{
-roll:roll,
-lat:loc.lat,
-lon:loc.lon
-})
+    // Student stops tracking
+    socket.on("trackingStopped", (roll) => {
+        if (studentData[roll] && studentData[roll].current) {
+            studentData[roll].stop = {
+                lat: studentData[roll].current.lat,
+                lon: studentData[roll].current.lon
+            };
+            studentData[roll].isTracking = false;
 
-}
+            io.emit("receiveLocation", {
+                roll: roll,
+                start: studentData[roll].start,
+                current: studentData[roll].current,
+                stop: studentData[roll].stop,
+                path: studentData[roll].path,
+                isTracking: studentData[roll].isTracking
+            });
+        }
+    });
 
-})
+    // Parent / Faculty requests student data
+    socket.on("trackStudent", (roll) => {
+        const data = studentData[roll];
 
-})
+        if (data) {
+            socket.emit("receiveLocation", {
+                roll: roll,
+                start: data.start,
+                current: data.current,
+                stop: data.stop,
+                path: data.path,
+                isTracking: data.isTracking
+            });
+        } else {
+            socket.emit("locationError", {
+                message: "Student location not available"
+            });
+        }
+    });
 
-// IMPORTANT for Render
-const PORT = process.env.PORT || 3000
+    socket.on("disconnect", () => {
+        console.log("User disconnected");
+    });
+});
 
-http.listen(PORT,()=>{
+const PORT = process.env.PORT || 3000;
 
-console.log("✅ Safety Tracker Server Running on port",PORT)
-
-})
+http.listen(PORT, () => {
+    console.log("✅ Safety Tracker Server Running on port", PORT);
+});
