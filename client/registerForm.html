@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Registration Form</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial;
+    background: linear-gradient(120deg,#c8f7dc,#cbe8ff);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container{
+    background:white;
+    padding:40px;
+    border-radius:12px;
+    width:350px;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.2);
+}
+
+h2{
+    text-align:center;
+    color:#006666;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:20px;
+    border:none;
+    border-radius:8px;
+    background:#4fa3ff;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2 id="title"></h2>
+
+<div id="formArea"></div>
+
+<button onclick="next()">Next</button>
+
+</div>
+
+<script>
+
+let role = localStorage.getItem("role")
+
+document.getElementById("title").innerText = role.toUpperCase()+" Registration"
+
+let form = document.getElementById("formArea")
+
+if(role==="student"){
+
+form.innerHTML = `
+<input id="name" placeholder="Name">
+<input id="roll" placeholder="Roll Number">
+<input id="gender" placeholder="Gender">
+<input id="faculty" placeholder="Faculty Name">
+<input id="mother" placeholder="Mother Name">
+<input id="father" placeholder="Father Name">
+<input id="parentMobile" placeholder="Parent Mobile Number">
+`
+
+}
+
+if(role==="parent"){
+
+form.innerHTML = `
+<input id="name" placeholder="Parent Name">
+<input id="roll" placeholder="Child Roll Number">
+<input id="mobile" placeholder="Mobile Number">
+`
+
+}
+
+if(role==="faculty"){
+
+form.innerHTML = `
+<input id="name" placeholder="Faculty Name">
+<input id="subject" placeholder="Subject">
+<input id="mobile" placeholder="Mobile Number">
+`
+
+}
+
+function next(){
+
+let name = document.getElementById("name").value
+
+localStorage.setItem("regName",name)
+
+window.location.href="setPassword.html"
+
+}
+
+</script>
+
+</body>
+
+</html>
