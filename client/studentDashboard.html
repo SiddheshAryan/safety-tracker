@@ -63,8 +63,7 @@
 <script>
     const socket = io();
 
-    let watchID;
-
+    let watchID = null;
     let name = localStorage.getItem("regName");
     let roll = localStorage.getItem("roll");
 
@@ -74,6 +73,8 @@
     function startTracking(){
         document.getElementById("status").innerText = "Tracking...";
 
+        if (watchID !== null) return;
+
         watchID = navigator.geolocation.watchPosition((pos)=>{
             let data = {
                 roll: roll,
@@ -82,11 +83,22 @@
             };
 
             socket.emit("locationUpdate", data);
+        }, (err) => {
+            alert("Location access failed");
+        }, {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
         });
     }
 
     function stopTracking(){
-        navigator.geolocation.clearWatch(watchID);
+        if (watchID !== null) {
+            navigator.geolocation.clearWatch(watchID);
+            watchID = null;
+        }
+
+        socket.emit("trackingStopped", roll);
         document.getElementById("status").innerText = "Stopped";
     }
 
