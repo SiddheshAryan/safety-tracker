@@ -80,3 +80,4 @@ const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
     console.log("✅ Safety Tracker Server Running on port", PORT);
 });
+
