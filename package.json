@@ -1,19 +1,15 @@
 {
   "name": "safety-tracker",
   "version": "1.0.0",
-  "description": "Student Safety Tracker",
+  "description": "Real-time student safety tracking system using Node.js and Socket.IO",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "mysql2": "^3.11.0",
     "socket.io": "^4.7.2"
   }
 }
