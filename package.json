@@ -1,15 +1,16 @@
 {
-  "name": "safety-tracker",
+  "name": "gps-tracker",
   "version": "1.0.0",
-  "description": "Real-time student safety tracking system using Node.js and Socket.IO",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "express": "^4.22.1",
+    "socket.io": "^4.8.3",
+    "sqlite3": "^5.1.7"
   }
 }
